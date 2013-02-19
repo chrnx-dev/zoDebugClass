@@ -1,0 +1,116 @@
+<div id="CDebug-console" class="container-fluid">
+	<div id="CDebug-container" class="container-fluid">
+
+		<div class="row-fluid">
+			<div class="span10">
+				<h1><small>Debug Console</small></h1>
+			</div>
+			<div class="span2">
+				<h5><small>{function="date('Y-m-d H:i:s')"}</small></h5>
+			</div>
+		</div>
+
+		{loop="$debug"}
+		<div class="row-fluid">
+			{if="$value['type'] == CDEBUG_TOKEN_MESSAGE"}
+			<div class="row-fluid debug-entry " rel="{$key}">
+				<div class="debug-entry-header">
+					<span class="label {$value['class']}">{$value['stringToken']}</span>
+					<span class="muted"> {$value['value']}</span>
+				</div>
+				<div class="debug-entry-footer">
+					<span class="muted">triggered on <b>{$value['srcFilename']}</b> in line <b>{$value['line']}</b></span>
+				</div>
+			</div>
+
+			{elseif=" $value['type'] == CDEBUG_TOKEN_CHECKPOINT"}
+			<div class="row-fluid debug-entry" rel="{$key}">
+				<div class="debug-entry-header">
+					<span class="label {$value['class']}">{$value['stringToken']}</span>
+					<span class="muted"> {$value['value']}</span>
+				</div>
+				<div class="debug-entry-footer">
+					<span class="muted">triggered on <b>{$value['srcFilename']}</b> in line <b>{$value['line']}</b></span>
+				</div>
+			</div>
+			{else}
+			<div class="row-fluid debug-entry" rel="{$key}">
+				<div class="debug-entry-header">
+
+					<div class="span7">
+						<span class="label {$value['class']}">{$value['stringToken']}</span>
+						<span><b>${$value['name']}</b></span>
+					</div>
+					<div class="span5 debug-control" rel="{$key}">
+						<a href="#">value</a> | <a href="#">source</a> | <a href="#">trace</a>
+					</div>
+				</div>
+				
+				<div class="debug-entry-body row-fluid">
+					<div class="debug-value span10 offset1">
+						<pre>{function="print_r($value['value'],true)"}</pre>
+					</div>					
+					<div class="debug-source span10 offset1">
+						<pre>{function="urldecode($value['srcLine'])"}</pre>
+					</div>					
+					<div class="debug-trace span10 offset1">
+						{loop="$value['trace']"}
+						<div class="row-fluid">
+							<span class="label">></span>
+							<span class="muted"> <b>{$value['function']}</b> triggered on <span class="text-info"><b>{function="basename($value['file'])"}</b></span> in line <b>{$value['line']}</b></span>
+						</div>
+						{/loop}
+					</div>
+				</div>
+				
+				<div class="debug-entry-footer">
+					<span class="muted">triggered on <b>{$value['srcFilename']}</b> in line <b>{$value['line']}</b></span>
+				</div>
+			</div>
+			{/if}
+		</div>
+		{/loop}
+
+		{loop="$errors"}
+		<div class="row-fluid error-entry" rel="{$key}">
+			<div class="debug-entry-header">
+
+				<div class="span7">
+					<span class="label {$value['class']}">{$value['stringToken']}</span>
+					<span><b>{$value['value']}</b></span>
+				</div>
+				<div class="span5 debug-control" rel="{$key}">
+					<a href="#">value</a> | <a href="#">source</a> | <a href="#">trace</a>
+				</div>
+				<div class="debug-entry-body row-fluid">
+					<div class="debug-value span10 offset1">
+						<pre>{function="print_r($value['value'],true)"}</pre>
+					</div>					
+					<div class="debug-source span10 offset1">
+						<pre>{function="urldecode($value['srcLine'])"}</pre>
+					</div>					
+					<div class="debug-trace span10 offset1">
+						
+						{loop="$value['trace']"}
+						<div class="row-fluid">
+							<span class="label">></span>
+							<pre><span class="muted">{function="print_r($value,1)"}</span></pre>
+						</div>
+						
+						{/loop}
+					</div>
+				</div>
+				
+				<div class="debug-entry-footer">
+					<span class="muted">triggered on <b>{$value['srcFilename']}</b> in line <b>{$value['line']}</b></span>
+				</div>
+				
+				
+			</div>
+			
+		</div>
+		{/loop}
+	</div>
+	<!-- ./CDebug-container -->
+</div>
+<!-- ./CDebug-console -->
