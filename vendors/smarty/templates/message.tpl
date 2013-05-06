@@ -21,23 +21,27 @@
 			<span><b>${$debug.name}</b></span>
 		</div>
 		<div class="span5 debug-control" rel="{$debug@iteration}">
-			<a control="value" href="#">value</a> | <a control="source" href="#">source</a> | <a control="trace" href="#">trace</a>
+			<a control="value" href="#">value</a> | <a control="source" href="#">source</a> | <a control="trace" href="#">trace</a> | <a control="hide" href="#">hide</a>
 		</div>
 	</div>
 				
 	<div class="debug-entry-body row-fluid">
-		<div class="debug-value span10 offset1">
+		<div class="debug-value span10 offset1 hide">
 			<pre>{print_r($debug.value,true)}</pre>
 		</div>					
-		<div class="debug-source span10 offset1">
+		<div class="debug-source span10 offset1 hide">
 			<pre>{urldecode($debug.srcLine)}</pre>
 		</div>					
-		<div class="debug-trace span10 offset1">
-			{foreach $value.trace as $trace}
+		<div class="debug-trace span10 offset1 hide">
+			{foreach $debug.trace as $trace}
 			<div class="row-fluid">
-				<span class="label">></span>
-				<span class="muted"> <b>{$trace.function}</b> triggered on <span class="text-info"><b>{basename($trace.file)}</b></span> in line <b>{$trace.line}</b></span>
+				<span class="label">>     </span>{$trace.message}	
 			</div>
+			{if !empty($trace.file) && !empty($trace.line)}
+			<div class="row-fluid" >
+				<small><span class="muted">on <b>{basename($trace.file)}</b> in line <b>{$trace.line}</b></span></small>
+			</div>
+			{/if}			
 			{/foreach}
 		</div>
 	</div>
@@ -57,16 +61,16 @@
 			<span><b>{$error.value}</b></span>
 		</div>
 		<div class="span5 debug-control" rel="{$error@iteration}">
-			<a control="source" href="#">source</a> | <a control="trace" href="#">trace</a>
+			<a control="source" href="#">source</a> | <a control="trace" href="#">trace</a> | <a control="hide" href="#">hide</a> 
 		</div>
 	</div>
 		
 	<div class="debug-entry-body row-fluid">
 			
-		<div class="debug-source span10 offset1">
+		<div class="debug-source span10 offset1 hide">
 			<pre>{urldecode($error.srcLine)}</pre>
 		</div>					
-		<div class="debug-trace span10 offset1">
+		<div class="debug-trace span10 offset1 hide">
 						
 			{foreach $error.trace as $trace}
 			<div class="row-fluid">

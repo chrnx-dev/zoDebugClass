@@ -1,3 +1,7 @@
+{if not $headHTML}
+<div class="head"></div>
+{include file="header.tpl"}
+{/if}
 <div id="CDebug-console" class="container-fluid">
 	<div id="CDebug-container" class="container-fluid">
 	<div class="row-fluid">
@@ -24,4 +28,15 @@
 	<!-- ./CDebug-container -->
 </div>
 <!-- ./CDebug-console -->
+{if $headHTML}
+<script type="text/javascript">
+	$Content = $('#content');
+	$Debug = $('#CDebug-console');
+	$('#CDebug-console').remove();
+	$Content.after($Debug);
+</script>
+{/if}
 
+{if not $headHTML}
+{include file="footer.tpl"}
+{/if}

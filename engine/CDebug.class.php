@@ -9,6 +9,7 @@ class CDebug
 
     private static $Blocks = array('__MAIN__');
     private static $Modules = array();
+	private static $output = 'null';
    
 
     public static $errorTable = array
@@ -31,6 +32,7 @@ class CDebug
     
 	public static function init( $configs = null )
     {
+		ob_start(array(CDebug, 'output_analizer'));	
 		if (defined('E_DEPRECATED'))
         {
             self::$errorTable[E_DEPRECATED] = CDEBUG_TOKEN_DEPRECATED;
@@ -55,34 +57,54 @@ class CDebug
 
         register_shutdown_function('CDebug::_END');
 	}
+	
+	public static function hasHTML(){
+		return empty(self::$output);
+	}
+	
+	public static function output_analizer($buffer){
+		
+		self::$output = $buffer;
+		return $buffer;
+	}
 
     public static function _END()
     {
         /**
          * Only Fatal Errors Catched
          **/
-        if (!is_null($e = error_get_last()) && !in_array( self::$errorTable[$e['type']], array(CDEBUG_TOKEN_WARNING,CDEBUG_TOKEN_NOTICE,CDEBUG_TOKEN_DEPRECATED)))
-        {
-            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);	
-            $data = array(
-                'value' => $e['message'],
-                'line'  => $e['line'],
-                'file'  => $e['file'],
-                'block' => CDebug::getBlock(),
-                'trace' => $bt
-            );
-            $TOKEN = new TOKEN($data, self::$errorTable[$e['type']]);
-            self::getTrace()->add($TOKEN->returnToken());
-
-        }
-		//echo 'Trace: <pre>'.print_r(self::getTrace(),true).'</pre><br />';
-        //echo 'Cookies: <pre>'.print_r($_COOKIE,true).'</pre><br />';
-        //echo 'Config: <pre>'.print_r(CDebug::getConfig(),true).'</pre><br />';
-        //echo 'Include Files: <pre>'.print_r(get_included_files(),true).'</pre><br />';
-        //self::getTrace()->saveSession();
-        self::propagate(CDEBUG_EVENT_END, self::getTrace()->Trace());
-        
-
+        try{
+	        if (!is_null($e = error_get_last()) && !in_array( self::$errorTable[$e['type']], array(CDEBUG_TOKEN_WARNING,CDEBUG_TOKEN_NOTICE,CDEBUG_TOKEN_DEPRECATED))){
+	            CDebug::set('hasFatalError', true);	
+	            $bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);	
+	            $data = array(
+	                'value' => $e['message'],
+	                'line'  => $e['line'],
+	                'file'  => $e['file'],
+	                'block' => CDebug::getBlock(),
+	                'trace' => $bt
+	            );
+	            $TOKEN = new TOKEN($data, self::$errorTable[$e['type']]);
+	            self::getTrace()->add($TOKEN->returnToken());
+	
+	        }
+       
+		
+		
+			
+	        try{
+	        	self::propagate(CDEBUG_EVENT_END, self::getTrace()->Trace());
+			} catch (Exception $e){
+				echo 'Trace: <pre>'.print_r($e,true).'</pre><br />';
+			}
+			//echo 'Trace: <pre>'.print_r(self::getTrace(),true).'</pre><br />';
+	        //echo 'Cookies: <pre>'.print_r($_COOKIE,true).'</pre><br />';
+	        //echo 'Config: <pre>'.print_r(CDebug::getConfig(),true).'</pre><br />';
+	        //echo 'Include Files: <pre>'.print_r(get_included_files(),true).'</pre><br />';
+	        //self::getTrace()->saveSession();
+         } catch (Exception $e){
+			echo 'Trace: <pre>'.print_r($e,true).'</pre><br />';
+		}
         
     }
 
@@ -172,8 +194,9 @@ class CDebug
     public static function set($config, $value)
     {
         if(empty($config) && empty($value)) return false;
-
+	
         self::$settings->$config = $value;
+		self::$e_handling->reset();
     }
 
 	public static function getConfig()

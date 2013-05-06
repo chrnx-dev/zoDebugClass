@@ -1,20 +1,12 @@
 <?php
-/**
- * Config Class.
- * Contains Configuration for Debug Class
- * @author: Diego Resendez <diego.resendez@zero-oneit.com>
- * @version: 1.0b
- * @copyright : Zero One it Desarrollos
- **/ 
-
 class CDebug_Settings {
 
 	private $settings  = array
 	(
-		'enable'             	=> CDEBUG_ENABLE,
-        'catch_errors'		 	=> CDEBUG_SHOW_ERROR_ALL,
-        'catch_exceptions'		=> CDEBUG_SHOW_ERROR_ALL,
-        'profiling'				=> CDEBUG_ENABLE,
+		'enable'             	=> CDEBUG_DISABLE,
+        'catch_errors'		 	=> CDEBUG_DISABLE,
+        'catch_exceptions'		=> CDEBUG_DISABLE,
+        'profiling'				=> CDEBUG_DISABLE,
 
         'exclude_errors'		=> array(CDEBUG_TOKEN_WARNING,CDEBUG_TOKEN_NOTICE, CDEBUG_TOKEN_DEPRECATED),
        	
