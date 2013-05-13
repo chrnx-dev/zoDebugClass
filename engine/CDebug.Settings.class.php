@@ -1,14 +1,14 @@
 <?php
-class CDebug_Settings {
+class CDebug_Settings extends CDebug_General{
 
-	private $settings  = array
+	protected $properties  = array
 	(
 		'enable'             	=> CDEBUG_DISABLE,
-        'catch_errors'		 	=> CDEBUG_DISABLE,
-        'catch_exceptions'		=> CDEBUG_DISABLE,
+        'catch_errors'		 	=> CDEBUG_ENABLE,
+        'catch_exceptions'		=> CDEBUG_ENABLE,
         'profiling'				=> CDEBUG_DISABLE,
 
-        'exclude_errors'		=> array(CDEBUG_TOKEN_WARNING,CDEBUG_TOKEN_NOTICE, CDEBUG_TOKEN_DEPRECATED),
+        'exclude_errors'		=> array(CDEBUG_TOKEN_WARNING,CDEBUG_TOKEN_NOTICE, CDEBUG_TOKEN_DEPRECATED, CDEBUG_TOKEN_USER_NOTICE),
        	
        	'owner'				 	=> array(),
 
@@ -17,32 +17,18 @@ class CDebug_Settings {
        	'uses'				 	=> null,
 
         'title'				 	=> null,
+        'Blocks'				=> array('__MAIN__'),
+        'Modules'				=> array(),
+        'helper_autoload'		=> array('core'),
+        'Helpers'				=> array(),
         'templates'			 	=> null,
               
 		'gmt_time'				=> -8,
 		'date_format'			=> 'd-m-Y H:i',
-		'silent_error'			=> false
+		'hasFatalError'			=> false
 	);
 
-	public function __get($setting)
-	{
-		if ( isset($this->$setting ) )
-			return $this->settings[$setting] ;
-		
-		throw new Exception("Config $setting isn't declare", CDEBUG_ERR_NOT_DECLARED_SETTING);
-		
-	}
 	
-	public function __set($setting, $value)
-	{
-		$this->settings[$setting] = $value;
-	}
-	
-	public function __isset($setting)
-	{
-		//echo "Is '$setting' set?\n";
-        return isset($this->settings[$setting]);
-	}
 }
 
 ?>
