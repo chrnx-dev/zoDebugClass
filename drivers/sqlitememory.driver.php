@@ -11,7 +11,7 @@ class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 		$this -> db_data -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		
 		$this -> db_data -> exec("CREATE TABLE sessions (sessionId TEXT PRIMARY KEY, timestamp TEXT, startTime TEXT, endTime TEXT, maxmemory TEXT, execution TEXT)");
-		$this -> db_data -> exec("CREATE TABLE data (id integer PRIMARY KEY autoincrement, sessionId TEXT,type integer,  data blob)");	
+		$this -> db_data -> exec("CREATE TABLE data (id integer  primary key ,sessionId TEXT,type integer,  data text)");	
 		$this -> generateSession(true);
 	}
 	
@@ -34,28 +34,30 @@ class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 		$addData -> execute();
 		
 	}
-
-	public function getTrace($asObject = false) {
-		$SQL = 'SELECT * FROM data WHERE sessionId = :sessionId';
-		$stmPrepared = $this->db_data->prepare($SQL);
-		
-		$stmPrepared->bindParam(':sessionId', $this->sessionId);
-		$stmPrepared->execute();
-		
-		$tmp = $stmPrepared -> fetchAll();
-		$data = array();
-		
-		foreach ($tmp as $oData) {
-			array_push($data, json_decode($oData['data']));
-		}
-		
-		return $data;
+	
+	private function getSession(){
+		return $this->db_data->query("SELECT * FROM sessions WHERE sessionId = '{$this->sessionId}'", PDO::FETCH_OBJ)->fetch();
 	}
 
+	public function getTrace($asObject = false) {
+		$oSession = $this->getSession();
+		$SQL = "SELECT * FROM data WHERE sessionId = '{$this->sessionId}'";
+				
+		$data = array();
+		
+		foreach ($this->db_data->query($SQL, PDO::FETCH_OBJ) as $oData) {
+			
+			array_push($data, json_decode($oData->data));
+		}
+		
+		$oSession->data = $data;
+		
+		return $oSession;
+	}
+	
 	public function saveSession() {
 				
-		$oData = $this->db_data->query("SELECT * FROM sessions WHERE sessionId = '{$this->sessionId}'", PDO::FETCH_OBJ);
-		$oSession = $oData->fetch();
+		$oSession =  $this->getSession();
 		
 		$oSession->endTime = microtime(true);
 		$oSession->maxmemory = number_format((memory_get_peak_usage() / 1024 / 1024), 2) . ' MB';
@@ -64,17 +66,14 @@ class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 		if (($oSession->endTime - $oSession->startTime) != 0){
 			$oSession->execution = number_format(($oSession -> endTime - $oSession -> startTime) / 1000, 4) . ' s';
 		}
-		
-		
-		
-		if (($endTime - $oSession->startTime))
+
 		$Update = 'UPDATE sessions SET endTime = :endTime, maxmemory=:maxmemory, execution = :execution WHERE sessionId = :sessionId ';
 		
 		$addData = $this -> db_data -> prepare($Update);
 		
 		
 		
-		$addData -> bindParam(':sessionId', $this->sessionId);
+		$addData -> bindParam(':sessionId', $this->sessionId, PDO::PARAM_STR);
 		$addData -> bindParam(':endTime',   $oSession->endTime);
 		$addData -> bindParam(':maxmemory', $oSession->maxmemory, PDO::PARAM_STR );
 		$addData -> bindParam(':execution', $oSession->execution, PDO::PARAM_STR);
@@ -102,17 +101,20 @@ class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 		return gzuncompress($data);
 	}
 
-	public function add($data) {
+	public function add($data = null) {
+		$addData = null;
+		
 		$InsertData = 'INSERT INTO data (sessionId,type,data ) 
 					   VALUES (:sessionId, :type, :data)';
 					   
 		$addData = $this -> db_data -> prepare($InsertData);
 		
-		$addData -> bindParam(':sessionId', $this->sessionId);
-		$addData -> bindParam(':type', $data['type']);
-		$addData -> bindParam(':data', json_encode($data));
+		$addData -> bindParam(':sessionId', $this->sessionId, PDO::PARAM_STR);
+		$addData -> bindParam(':type', $data['type'], PDO::PARAM_INT);
+		$addData -> bindParam(':data', json_encode($data), PDO::PARAM_STR);
 		
-		$addData -> execute();			   	
+		$addData -> execute();		
+		var_dump($data);   	
 		
 	}
 	

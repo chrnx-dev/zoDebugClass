@@ -32,7 +32,7 @@ class DefaultDriver extends CDebug_General implements CDebug_IData {
 
 		$this -> session -> endTime = microtime(true);
 		$this -> session -> maxmemory = number_format((memory_get_peak_usage() / 1024 / 1024), 2) . ' MB';
-		$this -> session -> execution = number_format(($this -> endTime - $this -> startTime) / 1000, 4) . ' s';
+		$this -> session -> execution = number_format(($this -> session -> endTime - $this->session -> startTime) / 1000, 4) . ' s';
 
 		return $this->session;
 	}

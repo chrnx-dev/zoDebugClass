@@ -26,10 +26,32 @@ class CDebug{
 			self::getSettings()->Core->error_table[E_USER_DEPRECATED] = CDEBUG_TOKEN_USER_DEPRECATED;
 		}
 		
-		self::$data =  CDebug_Data::Create(CDEBUG_SQLITEMEMORY_DRIVER);
+		self::$data =  CDebug_Data::Create(/*CDEBUG_SQLITEMEMORY_DRIVER*/);
 		self::$e = new CDebug_ErrorManagement();
 		
 		register_shutdown_function('CDebug::_END');
+	}
+	
+	public static function auto($method = null, $args = array()) {
+		
+		$Helpers = self::getSettings()->Helpers;
+		
+		if (!empty($Helpers) && !empty($method)) {
+
+			foreach ($Helpers as $helper) {
+				if (method_exists($helper, $method)){
+					return call_user_func_array(array($helper, $method), $args);
+				}
+			}
+		}
+		
+		
+	}
+	
+	
+	
+	public static function isEnabled() {
+		return ((bool)self::$settings -> enable & 255) && (self::$settings -> enable == CDEBUG_ENABLE);
 	}
 	
 	public static function getSettings(){
@@ -47,13 +69,34 @@ class CDebug{
 	public static function output_analizer($buffer) {
 		self::$output = $buffer;
 		
-		
+		$buffer.= self::auto(__FUNCTION__);
+		self::message('output_analizer');
 		
 		return $buffer;
+		
 	}
 	
 	public static function getTrace() {
 		return self::$data;
+	}
+	
+	/**
+	 * Add a Message to debug report
+	 * @param string $message
+	 */ 
+	 
+	public static function message($message) {
+		if (!self::isEnabled())
+			return false;
+
+		$bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
+		$caller = array_shift($bt);
+		$file = $caller['file'];
+
+		$data = array('value' => $message, 'line' => $caller['line'], 'file' => $file,  'trace' => $bt);
+		$TOKEN = new TOKEN($data, CDEBUG_TOKEN_MESSAGE);
+		self::getTrace() -> add($TOKEN -> returnToken());
+		
 	}
 	
 	public static function _END() {
@@ -68,21 +111,22 @@ class CDebug{
 				self::getTrace() -> add($TOKEN -> returnToken());
 
 			}
-
+			self::getTrace()->saveSession();
+			
 			/*try {
 				self::propagate(CDEBUG_EVENT_END, self::getTrace() -> Trace());
 			} catch (Exception $e) {
 				echo 'Trace: <pre>' . print_r($e, true) . '</pre><br />';
 			}*/
 			echo 'Errors: <pre>'.print_r(self::getTrace()->getBy(CDEBUG_TOKEN_ERROR),true).'</pre><br />';
-			//echo 'Trace: <pre>'.print_r(self::getTrace()->getTrace(),true).'</pre><br />';
+			echo 'Trace: <pre>'.print_r(self::getTrace()->getTrace(),true).'</pre><br />';
 			//echo 'Cookies: <pre>'.print_r($_COOKIE,true).'</pre><br />';
 			echo 'Config: <pre>'.print_r(CDebug::getSettings(),true).'</pre><br />';
-			//echo 'Include Files: <pre>'.print_r(get_included_files(),true).'</pre><br />';
-			echo 'Session: <pre>'.print_r(self::getTrace()->saveSession(),true).'</pre><br />';
+			echo 'Include Files: <pre>'.print_r(get_included_files(),true).'</pre><br />';
+			
 			
 		} catch (Exception $e) {
-			echo 'Trace: <pre>' . print_r($e, true) . '</pre><br />';
+			echo 'Error on end: <pre>' . print_r($e, true) . '</pre><br />';
 		}
 
 	}
@@ -187,23 +231,7 @@ class CDebug {
 
 	}
 
-	/**
-	 * Add a Message to debug report
-	 * @param string $message
-	 
-	public static function message($message) {
-		if (!self::isEnabled())
-			return false;
-
-		$bt = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
-		$caller = array_shift($bt);
-		$file = $caller['file'];
-
-		$data = array('value' => $message, 'line' => $caller['line'], 'file' => $file, 'block' => self::getBlock(), 'trace' => $bt);
-		$TOKEN = new TOKEN($data, CDEBUG_TOKEN_MESSAGE);
-		self::$data -> add($TOKEN -> returnToken());
-		self::propagate(CDEBUG_EVENT_MESSAGE, $TOKEN -> returnToken());
-	}
+	
 
 	public static function __callStatic($name, $arguments) {
 		self::propagate($name, self::getTrace() -> Trace());
@@ -254,9 +282,7 @@ class CDebug {
 		self::$data -> saveSession();
 	}
 
-	public static function isEnabled() {
-		return ((bool)self::$settings -> enable & 255) && (self::$settings -> enable == CDEBUG_ENABLE);
-	}
+	
 
 	public static function Uses($name, $file = null, $params = array()) {
 
@@ -314,91 +340,6 @@ class CDebug {
 		}
 	}
 
-	public static function stringToken($type) {
-		switch ($type) {
-			case CDEBUG_TOKEN_NONE :
-				return 'None';
-				break;
-			case CDEBUG_TOKEN_ERROR :
-				return 'Error';
-				break;
-			case CDEBUG_TOKEN_USER_ERROR :
-				return 'User Error';
-				break;
-			case CDEBUG_TOKEN_WARNING :
-				return 'Warning';
-				break;
-			case CDEBUG_TOKEN_USER_WARNING :
-				return 'User Warning';
-				break;
-			case CDEBUG_TOKEN_NOTICE :
-				return 'Notice';
-				break;
-			case CDEBUG_TOKEN_USER_NOTICE :
-				return 'User Notice';
-				break;
-			case CDEBUG_TOKEN_DEPRECATED :
-				return 'Deprecated';
-				break;
-			case CDEBUG_TOKEN_USER_DEPRECATED :
-				return 'User Deprecated';
-				break;
-			case CDEBUG_TOKEN_EXCEPTION :
-				return 'Exception';
-				break;
-			case CDEBUG_TOKEN_MESSAGE :
-				return 'Message';
-				break;
-			case CDEBUG_TOKEN_CHECKPOINT :
-				return 'Checkpoint';
-				break;
-			case CDEBUG_TOKEN_OBJECT :
-				return 'Object';
-				break;
-			case CDEBUG_TOKEN_STRING :
-				return 'String';
-				break;
-			case CDEBUG_TOKEN_ARRAY :
-				return 'Array';
-				break;
-			case CDEBUG_TOKEN_NUMERIC :
-				return 'Numeric';
-				break;
-			case CDEBUG_TOKEN_BOOLEAN :
-				return 'Boolean';
-				break;
-			case CDEBUG_TOKEN_RESOURCE :
-				return 'Resource';
-				break;
-			case CDEBUG_TOKEN_UNKNOW :
-				return 'Unknown';
-				break;
-			case CDEBUG_TOKEN_UNDEFINED :
-			default :
-				return 'Undefined';
-				break;
-		}
-	}
-
-	public static function varType($var) {
-		if (is_object($var))
-			return CDEBUG_TOKEN_OBJECT;
-		if (is_null($var))
-			return CDEBUG_TOKEN_UNDEFINED;
-		if (is_string($var))
-			return CDEBUG_TOKEN_STRING;
-		if (is_array($var))
-			return CDEBUG_TOKEN_ARRAY;
-		if (is_int($var) || is_float($var))
-			return CDEBUG_TOKEN_NUMERIC;
-		if (is_bool($var))
-			return CDEBUG_TOKEN_BOOLEAN;
-
-		if (is_resource($var))
-			return CDEBUG_TOKEN_RESOURCE;
-
-		return CDEBUG_TOKEN_UNKNOW;
-	}
-
+	
 }*/
 ?>

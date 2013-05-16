@@ -3,7 +3,7 @@ class CDebug_Settings extends CDebug_General{
 
 	protected $properties  = array
 	(
-		'enable'             	=> CDEBUG_DISABLE,
+		'enable'             	=> CDEBUG_ENABLE,
         'catch_errors'		 	=> CDEBUG_ENABLE,
         'catch_exceptions'		=> CDEBUG_ENABLE,
         'profiling'				=> CDEBUG_DISABLE,
@@ -19,7 +19,7 @@ class CDebug_Settings extends CDebug_General{
         'title'				 	=> null,
         'Blocks'				=> array('__MAIN__'),
         'Modules'				=> array(),
-        'helper_autoload'		=> array('core'),
+        'helper_autoload'		=> array('core','wordpress'),
         'Helpers'				=> array(),
         'templates'			 	=> null,
               
