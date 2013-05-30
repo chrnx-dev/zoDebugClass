@@ -26,7 +26,7 @@ class CDebug{
 			self::getSettings()->Core->error_table[E_USER_DEPRECATED] = CDEBUG_TOKEN_USER_DEPRECATED;
 		}
 		
-		self::$data =  CDebug_Data::Create(/*CDEBUG_SQLITEMEMORY_DRIVER*/);
+		self::$data =  CDebug_Data::Create();
 		self::$e = new CDebug_ErrorManagement();
 		
 		register_shutdown_function('CDebug::_END');

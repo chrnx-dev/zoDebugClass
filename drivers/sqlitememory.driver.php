@@ -3,26 +3,29 @@ require_once 'CDebug.Data.interface.php';
 
 class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 	
-	private $sessionId = '';
+	private $appId;
 	
 	
 	public function __construct() {
-		$this -> db_data = new PDO('sqlite::memory:');
+		
+		$this -> db_data = new PDO('sqlite:'.CDEBUG_DRIVERS.'data.db');
 		$this -> db_data -> setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		
-		$this -> db_data -> exec("CREATE TABLE sessions (sessionId TEXT PRIMARY KEY, timestamp TEXT, startTime TEXT, endTime TEXT, maxmemory TEXT, execution TEXT)");
-		$this -> db_data -> exec("CREATE TABLE data (id integer  primary key ,sessionId TEXT,type integer,  data text)");	
-		$this -> generateSession(true);
+		$this -> appId = $this->getApplicationId('7943025fa79a44eda05083ba85ece82bfc26cb0e');	
+		
+		echo '<pre>'.print_r($this->appId,true).'</pre>';	
+		/*$this -> db_data -> exec("CREATE TABLE sessions (sessionId TEXT PRIMARY KEY, timestamp TEXT, startTime TEXT, endTime TEXT, maxmemory TEXT, execution TEXT)");
+		$this -> db_data -> exec("CREATE TABLE data (id integer  primary key ,sessionId TEXT,type integer,  data text)");*/	
+		//$this -> generateSession(true);
 	}
 	
 	public function generateSession($force = false) {
 		
 		$timeStamp = microtime(true);
-		$insert = "INSERT INTO sessions (sessionId, timestamp, startTime, endTime, maxmemory, execution ) 
-				   VALUES (:sessionId, :timestamp, :startTime, :endTime, :maxmemory, :execution )";
-		$this -> sessionId = sha1('Debug-' . $timeStamp);	
+		/*$insert = "INSERT INTO sessions (sessionId, timestamp, startTime, endTime, maxmemory, execution ) 
+				   VALUES (:sessionId, :timestamp, :startTime, :endTime, :maxmemory, :execution )";*/
 		
-		$addData = $this -> db_data -> prepare($insert);
+		/*$addData = $this -> db_data -> prepare($insert);
 		
 		$addData -> bindParam(':sessionId', $this->sessionId);
 		$addData -> bindParam(':timestamp', $timeStamp);
@@ -31,8 +34,12 @@ class SqliteMemoryDriver extends CDebug_General implements CDebug_IData {
 		$addData -> bindParam(':maxmemory', $this->db_data->quote('0 MB'));
 		$addData -> bindParam(':execution', $this->db_data->quote('0 s'));
 		
-		$addData -> execute();
+		$addData -> execute();*/
 		
+	}
+	
+	private function getApplicationId($app_id = ''){
+		return $this->db_data->query("SELECT id FROM applications WHERE app_id = '{$appId}'", PDO::FETCH_OBJ)->fetch();
 	}
 	
 	private function getSession(){
